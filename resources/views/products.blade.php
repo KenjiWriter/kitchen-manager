@@ -224,11 +224,22 @@
                 productsList.classList.add('hidden');
                 emptyState.classList.add('hidden');
 
-                const response = await fetch('/api/products?token=' + token, {
+                const response = await fetch('/api/products', {
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
                     }
                 });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_name');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('Failed to load products');
+                }
 
                 const data = await response.json();
 
@@ -408,6 +419,7 @@
                 const response = await fetch(`/api/products/${productId}`, {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: formData

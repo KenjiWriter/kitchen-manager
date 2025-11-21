@@ -203,11 +203,22 @@
                 groupsList.classList.add('hidden');
                 emptyState.classList.add('hidden');
 
-                const response = await fetch('{{ route('api.groups.index') }}?token=' + token, {
+                const response = await fetch('{{ route('api.groups.index') }}', {
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
                     }
                 });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_name');
+                        window.location.href = '{{ route('login') }}';
+                        return;
+                    }
+                    throw new Error('Unauthorized - Invalid token');
+                }
 
                 const data = await response.json();
 

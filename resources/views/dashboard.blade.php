@@ -56,15 +56,16 @@
                     <span class="text-2xl">📦</span>
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow p-3">
+            <a href="{{ route('products') }}"
+                class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow p-3 hover:from-orange-600 hover:to-orange-700 transition-all active:scale-95">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-orange-600">Wkrótce</p>
-                        <p id="expiringCount" class="text-xl font-bold text-orange-600">0</p>
+                        <p class="text-xs text-orange-100">Zarządzaj</p>
+                        <p class="text-xl font-bold text-white">Produkty</p>
                     </div>
-                    <span class="text-2xl">⚠️</span>
+                    <span class="text-2xl">📦</span>
                 </div>
-            </div>
+            </a>
             <a href="{{ route('groups') }}"
                 class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow p-3 hover:from-blue-600 hover:to-blue-700 transition-all active:scale-95">
                 <div class="flex items-center justify-between">
@@ -114,13 +115,13 @@
                 </div>
                 <span class="text-xs font-bold text-amber-600 mt-1">Skanuj</span>
             </a>
-            <a href="{{ route('products') }}"
-                class="flex flex-col items-center py-3 text-gray-600 hover:text-amber-600 transition">
+            <a href="{{ route('pantry') }}?openSearch=1"
+                class="flex flex-col items-center py-3 text-gray-600 hover:text-blue-600 transition">
                 <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <span class="text-xs font-medium">Produkty</span>
+                <span class="text-xs font-medium">Szukaj</span>
             </a>
         </div>
     </nav>
@@ -241,8 +242,8 @@
                                     ${item.product.image_url 
                                         ? `<img src="${item.product.image_url}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" alt="${item.product.name}">`
                                         : `<div class="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-xl flex-shrink-0">
-                                                    ${item.product.category.icon}
-                                                   </div>`
+                                                        ${item.product.category.icon}
+                                                       </div>`
                                     }
                                     <div class="flex-1 min-w-0">
                                         <h3 class="font-medium text-gray-900 truncate">${item.product.name}</h3>

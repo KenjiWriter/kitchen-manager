@@ -372,8 +372,8 @@
                         ${item.product.image_url 
                             ? `<img src="${item.product.image_url}" class="w-16 h-16 rounded-lg object-cover" alt="${item.product.name}">`
                             : `<div class="w-16 h-16 rounded-lg ${statusColor} border-2 flex items-center justify-center text-3xl">
-                                            ${item.product.category.icon}
-                                           </div>`
+                                                ${item.product.category.icon}
+                                               </div>`
                         }
                     </div>
                     <div class="flex-1 min-w-0">
@@ -408,31 +408,31 @@
                                 <span class="font-semibold ml-1">${item.quantity}</span>
                             </div>
                             ${item.location ? `
-                                        <div>
-                                            <span class="text-gray-600">Lokalizacja:</span>
-                                            <span class="font-semibold ml-1">${item.location}</span>
-                                        </div>
-                                        ` : ''}
+                                            <div>
+                                                <span class="text-gray-600">Lokalizacja:</span>
+                                                <span class="font-semibold ml-1">${item.location}</span>
+                                            </div>
+                                            ` : ''}
                             ${item.expiry_date ? `
-                                        <div class="col-span-2">
-                                            <span class="text-gray-600">Termin ważności:</span>
-                                            <span class="font-semibold ml-1 ${item.is_expired ? 'text-red-600' : item.is_expiring_soon ? 'text-orange-600' : 'text-green-600'}">
-                                                ${new Date(item.expiry_date).toLocaleDateString('pl-PL')}
-                                                ${item.days_until_expiry !== null ? `(${item.days_until_expiry} dni)` : ''}
-                                            </span>
-                                        </div>
-                                        ` : ''}
+                                            <div class="col-span-2">
+                                                <span class="text-gray-600">Termin ważności:</span>
+                                                <span class="font-semibold ml-1 ${item.is_expired ? 'text-red-600' : item.is_expiring_soon ? 'text-orange-600' : 'text-green-600'}">
+                                                    ${new Date(item.expiry_date).toLocaleDateString('pl-PL')}
+                                                    ${item.days_until_expiry !== null ? `(${item.days_until_expiry} dni)` : ''}
+                                                </span>
+                                            </div>
+                                            ` : ''}
                             ${item.group ? `
-                                        <div class="col-span-2">
-                                            <span class="text-gray-600">Grupa:</span>
-                                            <span class="font-semibold ml-1">${item.group.name}</span>
-                                        </div>
-                                        ` : ''}
+                                            <div class="col-span-2">
+                                                <span class="text-gray-600">Grupa:</span>
+                                                <span class="font-semibold ml-1">${item.group.name}</span>
+                                            </div>
+                                            ` : ''}
                             ${item.notes ? `
-                                        <div class="col-span-2">
-                                            <p class="text-gray-600 text-xs italic">${item.notes}</p>
-                                        </div>
-                                        ` : ''}
+                                            <div class="col-span-2">
+                                                <p class="text-gray-600 text-xs italic">${item.notes}</p>
+                                            </div>
+                                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -586,6 +586,17 @@
         loadGroups();
         loadItems();
 
+        // Check if should open search modal from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openSearch') === '1') {
+            // Open modal after a short delay to ensure page is loaded
+            setTimeout(() => {
+                document.getElementById('searchEanModal').classList.remove('hidden');
+                // Clear the URL parameter
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 300);
+        }
+
         // Search EAN Modal functionality
         const searchModal = document.getElementById('searchEanModal');
         const openSearchBtn = document.getElementById('openSearchModal');
@@ -635,7 +646,7 @@
                             document.getElementById('eanCodeInput').value = eanCode;
                             scanStatus.textContent = `✓ Znaleziono kod: ${eanCode}`;
                             scanStatus.className =
-                            'mt-2 text-center text-sm text-green-600 font-medium';
+                                'mt-2 text-center text-sm text-green-600 font-medium';
                         } else {
                             scanStatus.textContent = '⚠ Nie znaleziono kodu - wpisz ręcznie';
                             scanStatus.className = 'mt-2 text-center text-sm text-orange-600';
