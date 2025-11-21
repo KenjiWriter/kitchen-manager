@@ -1,5 +1,8 @@
 import Quagga from '@ericblade/quagga2';
 
+// Export Quagga globally for use in other scripts
+window.Quagga = Quagga;
+
 let userGroups = [];
 let categories = [];
 let scannedProducts = []; // Lista zeskanowanych produktów

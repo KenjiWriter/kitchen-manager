@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Stan Kuchenny - Domowy Inwentarz</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/scanner.js'])
 </head>
 
 <body class="bg-gray-50">
@@ -17,11 +17,22 @@
                 <h1 class="text-2xl font-bold text-gray-900">Stan Kuchenny</h1>
                 <p class="text-sm text-gray-600 mt-1">Zarządzaj produktami w Twojej kuchni</p>
             </div>
-            <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </a>
+            <div class="flex items-center space-x-3">
+                <button id="openSearchModal"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>Szukaj po EAN</span>
+                </button>
+                <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </a>
+            </div>
         </div>
 
         <!-- Alert for expiring items -->
@@ -201,6 +212,65 @@
         </div>
     </div>
 
+    <!-- Search EAN Modal -->
+    <div id="searchEanModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg max-w-2xl w-full text-gray-900 max-h-screen overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-start justify-between mb-4">
+                    <h3 class="text-xl font-bold">🔍 Szukaj produktu po kodzie EAN</h3>
+                    <button id="closeSearchModal" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="searchEanForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kod EAN *</label>
+                        <input type="text" id="eanCodeInput" placeholder="np. 5900008001634"
+                            pattern="[0-9]{8,13}" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Zdjęcie kodu kreskowego (opcjonalne)
+                        </label>
+                        <input type="file" id="eanImageInput" accept="image/*" capture="environment"
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <p class="mt-1 text-xs text-gray-500">Możesz zrobić zdjęcie lub wybrać z galerii</p>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div id="imagePreview" class="hidden">
+                        <img id="previewImage" class="w-full rounded-lg max-h-64 object-contain bg-gray-100"
+                            alt="Preview">
+                    </div>
+
+                    <div class="flex space-x-3">
+                        <button type="submit"
+                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium">
+                            Szukaj
+                        </button>
+                        <button type="button" id="cancelSearch"
+                            class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 font-medium">
+                            Anuluj
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Product History Section -->
+                <div id="productHistory" class="hidden mt-6 pt-6 border-t border-gray-200">
+                    <h4 class="text-lg font-bold mb-4">Historia skanowań</h4>
+                    <div id="productHistoryContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let allItems = [];
         let userGroups = [];
@@ -302,8 +372,8 @@
                         ${item.product.image_url 
                             ? `<img src="${item.product.image_url}" class="w-16 h-16 rounded-lg object-cover" alt="${item.product.name}">`
                             : `<div class="w-16 h-16 rounded-lg ${statusColor} border-2 flex items-center justify-center text-3xl">
-                                        ${item.product.category.icon}
-                                       </div>`
+                                            ${item.product.category.icon}
+                                           </div>`
                         }
                     </div>
                     <div class="flex-1 min-w-0">
@@ -338,31 +408,31 @@
                                 <span class="font-semibold ml-1">${item.quantity}</span>
                             </div>
                             ${item.location ? `
-                                    <div>
-                                        <span class="text-gray-600">Lokalizacja:</span>
-                                        <span class="font-semibold ml-1">${item.location}</span>
-                                    </div>
-                                    ` : ''}
+                                        <div>
+                                            <span class="text-gray-600">Lokalizacja:</span>
+                                            <span class="font-semibold ml-1">${item.location}</span>
+                                        </div>
+                                        ` : ''}
                             ${item.expiry_date ? `
-                                    <div class="col-span-2">
-                                        <span class="text-gray-600">Termin ważności:</span>
-                                        <span class="font-semibold ml-1 ${item.is_expired ? 'text-red-600' : item.is_expiring_soon ? 'text-orange-600' : 'text-green-600'}">
-                                            ${new Date(item.expiry_date).toLocaleDateString('pl-PL')}
-                                            ${item.days_until_expiry !== null ? `(${item.days_until_expiry} dni)` : ''}
-                                        </span>
-                                    </div>
-                                    ` : ''}
+                                        <div class="col-span-2">
+                                            <span class="text-gray-600">Termin ważności:</span>
+                                            <span class="font-semibold ml-1 ${item.is_expired ? 'text-red-600' : item.is_expiring_soon ? 'text-orange-600' : 'text-green-600'}">
+                                                ${new Date(item.expiry_date).toLocaleDateString('pl-PL')}
+                                                ${item.days_until_expiry !== null ? `(${item.days_until_expiry} dni)` : ''}
+                                            </span>
+                                        </div>
+                                        ` : ''}
                             ${item.group ? `
-                                    <div class="col-span-2">
-                                        <span class="text-gray-600">Grupa:</span>
-                                        <span class="font-semibold ml-1">${item.group.name}</span>
-                                    </div>
-                                    ` : ''}
+                                        <div class="col-span-2">
+                                            <span class="text-gray-600">Grupa:</span>
+                                            <span class="font-semibold ml-1">${item.group.name}</span>
+                                        </div>
+                                        ` : ''}
                             ${item.notes ? `
-                                    <div class="col-span-2">
-                                        <p class="text-gray-600 text-xs italic">${item.notes}</p>
-                                    </div>
-                                    ` : ''}
+                                        <div class="col-span-2">
+                                            <p class="text-gray-600 text-xs italic">${item.notes}</p>
+                                        </div>
+                                        ` : ''}
                         </div>
                     </div>
                 `;
@@ -515,6 +585,287 @@
         // Initialize
         loadGroups();
         loadItems();
+
+        // Search EAN Modal functionality
+        const searchModal = document.getElementById('searchEanModal');
+        const openSearchBtn = document.getElementById('openSearchModal');
+        const closeSearchBtn = document.getElementById('closeSearchModal');
+        const cancelSearchBtn = document.getElementById('cancelSearch');
+        const searchEanForm = document.getElementById('searchEanForm');
+        const eanImageInput = document.getElementById('eanImageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+
+        openSearchBtn.addEventListener('click', () => {
+            searchModal.classList.remove('hidden');
+        });
+
+        closeSearchBtn.addEventListener('click', () => {
+            searchModal.classList.add('hidden');
+            searchEanForm.reset();
+            imagePreview.classList.add('hidden');
+        });
+
+        cancelSearchBtn.addEventListener('click', () => {
+            searchModal.classList.add('hidden');
+            searchEanForm.reset();
+            imagePreview.classList.add('hidden');
+        });
+
+        // Image preview and automatic EAN scanning
+        eanImageInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    previewImage.src = e.target.result;
+                    imagePreview.classList.remove('hidden');
+
+                    // Show scanning status
+                    const scanStatus = document.createElement('div');
+                    scanStatus.id = 'scanStatus';
+                    scanStatus.className = 'mt-2 text-center text-sm text-blue-600';
+                    scanStatus.textContent = 'Analizuję kod kreskowy...';
+                    imagePreview.appendChild(scanStatus);
+
+                    // Scan the image with Quagga2
+                    try {
+                        const eanCode = await scanImageForEAN(e.target.result);
+                        if (eanCode) {
+                            document.getElementById('eanCodeInput').value = eanCode;
+                            scanStatus.textContent = `✓ Znaleziono kod: ${eanCode}`;
+                            scanStatus.className =
+                            'mt-2 text-center text-sm text-green-600 font-medium';
+                        } else {
+                            scanStatus.textContent = '⚠ Nie znaleziono kodu - wpisz ręcznie';
+                            scanStatus.className = 'mt-2 text-center text-sm text-orange-600';
+                        }
+                    } catch (error) {
+                        console.error('Error scanning image:', error);
+                        scanStatus.textContent = '⚠ Nie udało się zeskanować - wpisz kod ręcznie';
+                        scanStatus.className = 'mt-2 text-center text-sm text-red-600';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Preprocess image for better barcode detection
+        function preprocessImage(src) {
+            return new Promise((resolve, reject) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+
+                img.onload = () => {
+                    const maxWidth = 1920;
+                    const maxHeight = 1920;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width *= ratio;
+                        height *= ratio;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Apply filters for better barcode detection
+                    ctx.filter = 'contrast(1.3) brightness(1.1) grayscale(1)';
+                    ctx.drawImage(canvas, 0, 0);
+
+                    const processedSrc = canvas.toDataURL('image/jpeg', 0.9);
+                    resolve(processedSrc);
+                };
+
+                img.onerror = () => {
+                    reject(new Error('Failed to load image'));
+                };
+
+                img.src = src;
+            });
+        }
+
+        // Try to decode with multiple configurations
+        async function scanImageForEAN(imageSrc) {
+            // Check if Quagga is available (loaded from scanner.js)
+            if (typeof Quagga === 'undefined') {
+                console.error('Quagga not loaded - scanner.js may not be loaded');
+                return null;
+            }
+
+            // Preprocess image first
+            let processedSrc;
+            try {
+                processedSrc = await preprocessImage(imageSrc);
+            } catch (error) {
+                console.error('Failed to preprocess image:', error);
+                return null;
+            }
+
+            // Try multiple configurations (same as in scanner.js)
+            const configs = [{
+                    size: 1280,
+                    patchSize: 'large',
+                    halfSample: false
+                },
+                {
+                    size: 1600,
+                    patchSize: 'large',
+                    halfSample: false
+                },
+                {
+                    size: 800,
+                    patchSize: 'medium',
+                    halfSample: false
+                },
+                {
+                    size: 1280,
+                    patchSize: 'medium',
+                    halfSample: true
+                }
+            ];
+
+            for (let i = 0; i < configs.length; i++) {
+                const config = configs[i];
+                console.log(`Próba ${i + 1}/${configs.length}:`, config);
+
+                const result = await new Promise((resolve) => {
+                    Quagga.decodeSingle({
+                        src: processedSrc,
+                        numOfWorkers: 0,
+                        locate: true,
+                        decoder: {
+                            readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader']
+                        },
+                        locator: {
+                            patchSize: config.patchSize,
+                            halfSample: config.halfSample
+                        }
+                    }, (result) => {
+                        if (result && result.codeResult && result.codeResult.code) {
+                            resolve(result.codeResult.code);
+                        } else {
+                            resolve(null);
+                        }
+                    });
+                });
+
+                console.log(`Próba ${i + 1} wynik:`, result);
+
+                if (result) {
+                    console.log('✓ Kod kreskowy wykryty:', result);
+                    return result;
+                }
+            }
+
+            // All attempts failed
+            console.log('Nie znaleziono kodu kreskowego po wszystkich próbach');
+            return null;
+        }
+
+        // Search by EAN
+        searchEanForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const ean = document.getElementById('eanCodeInput').value.trim();
+            if (!ean) {
+                alert('Wpisz kod EAN');
+                return;
+            }
+
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                alert('Musisz być zalogowany');
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/scan-history/by-ean?ean=${encodeURIComponent(ean)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert(error.message || 'Produkt nie został znaleziony');
+                    return;
+                }
+
+                const data = await response.json();
+                displayProductHistory(data.product, data.history, data.total_scans);
+            } catch (error) {
+                console.error('Error searching product:', error);
+                alert('Błąd podczas wyszukiwania produktu');
+            }
+        });
+
+        function displayProductHistory(product, history, totalScans) {
+            const historyDiv = document.getElementById('productHistoryContent');
+
+            let historyHTML = `
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="flex items-start space-x-4">
+                        ${product.image_url 
+                            ? `<img src="${product.image_url}" class="w-16 h-16 rounded-lg object-cover" alt="${product.name}">`
+                            : `<div class="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center text-2xl">${product.category.icon}</div>`
+                        }
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-gray-900">${product.name}</h3>
+                            <p class="text-sm text-gray-600">${product.category.icon} ${product.category.name}</p>
+                            <p class="text-xs font-mono text-gray-500 mt-1">EAN: ${product.ean_code}</p>
+                            <p class="text-xs text-blue-600 mt-1">${totalScans} skanowań</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (history.length > 0) {
+                historyHTML += `<div class="space-y-2">`;
+                history.forEach(scan => {
+                    historyHTML += `
+                        <div class="p-3 bg-white border border-gray-200 rounded-lg">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        <span class="font-medium text-gray-900">${scan.scanner.name}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>${scan.scanned_at_human}</span>
+                                    </div>
+                                    ${scan.location ? `<div class="text-xs text-gray-400 mt-1">📍 ${scan.location}</div>` : ''}
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    ${scan.scanned_at}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                historyHTML += `</div>`;
+            } else {
+                historyHTML += `
+                    <div class="text-center py-8 text-gray-500">
+                        <p>Brak historii skanowań dla tego produktu</p>
+                    </div>
+                `;
+            }
+
+            historyDiv.innerHTML = historyHTML;
+            document.getElementById('productHistory').classList.remove('hidden');
+        }
     </script>
 </body>
 

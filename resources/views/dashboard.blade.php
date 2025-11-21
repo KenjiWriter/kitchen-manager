@@ -99,7 +99,7 @@
                 class="flex flex-col items-center py-3 text-gray-600 hover:text-green-600 transition">
                 <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
                 <span class="text-xs font-medium">Magazyn</span>
             </a>
@@ -118,7 +118,7 @@
                 class="flex flex-col items-center py-3 text-gray-600 hover:text-amber-600 transition">
                 <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 <span class="text-xs font-medium">Produkty</span>
             </a>
@@ -241,8 +241,8 @@
                                     ${item.product.image_url 
                                         ? `<img src="${item.product.image_url}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" alt="${item.product.name}">`
                                         : `<div class="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-xl flex-shrink-0">
-                                                ${item.product.category.icon}
-                                               </div>`
+                                                    ${item.product.category.icon}
+                                                   </div>`
                                     }
                                     <div class="flex-1 min-w-0">
                                         <h3 class="font-medium text-gray-900 truncate">${item.product.name}</h3>

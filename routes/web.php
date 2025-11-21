@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\PasswordlessAuthController;
 use App\Http\Controllers\PantryItemController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductScanHistoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserGroupController;
 use Illuminate\Support\Facades\Route;
@@ -48,6 +49,10 @@ Route::middleware(['auth.passwordless'])->group(function () {
         return view('scanner-batch');
     })->name('scanner.batch');
 
+    Route::get('/inventory', function () {
+        return view('inventory');
+    })->name('inventory');
+
     // User Groups API
     Route::prefix('api/groups')->group(function () {
         Route::get('/', [UserGroupController::class, 'index'])->name('api.groups.index');
@@ -90,5 +95,11 @@ Route::middleware(['auth.passwordless'])->group(function () {
         Route::put('/{id}', [PantryItemController::class, 'update'])->name('api.pantry.update');
         Route::post('/{id}/consume', [PantryItemController::class, 'consume'])->name('api.pantry.consume');
         Route::delete('/{id}', [PantryItemController::class, 'destroy'])->name('api.pantry.destroy');
+    });
+
+    // Product Scan History API
+    Route::prefix('api/scan-history')->group(function () {
+        Route::get('/by-ean', [ProductScanHistoryController::class, 'getByEan'])->name('api.scan-history.by-ean');
+        Route::post('/record', [ProductScanHistoryController::class, 'recordScan'])->name('api.scan-history.record');
     });
 });
