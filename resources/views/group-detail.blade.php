@@ -315,9 +315,10 @@
             }
 
             try {
-                const response = await fetch(`/api/groups/${groupId}?token=${token}`, {
+                const response = await fetch(`/api/groups/${groupId}`, {
                     method: 'DELETE',
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json'
                     }
@@ -338,11 +339,22 @@
 
         async function loadGroupDetails() {
             try {
-                const response = await fetch(`/api/groups/${groupId}?token=${token}`, {
+                const response = await fetch(`/api/groups/${groupId}`, {
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
                     }
                 });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_name');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('Unauthorized - Invalid token');
+                }
 
                 const data = await response.json();
 
@@ -398,13 +410,13 @@
                         <p class="text-xs text-gray-400">Dołączył: ${new Date(member.joined_at).toLocaleDateString('pl-PL')}</p>
                     </div>
                     ${canManage && member.id !== ownerId && member.id !== currentUserId ? `
-                            <button 
-                                onclick="removeMember(${member.id}, '${escapeHtml(member.name)}')"
-                                class="text-red-600 hover:text-red-700 text-sm font-medium"
-                            >
-                                Usuń
-                            </button>
-                        ` : ''}
+                                <button 
+                                    onclick="removeMember(${member.id}, '${escapeHtml(member.name)}')"
+                                    class="text-red-600 hover:text-red-700 text-sm font-medium"
+                                >
+                                    Usuń
+                                </button>
+                            ` : ''}
                 </div>
             `).join('');
 
@@ -413,11 +425,22 @@
 
         async function searchUsers(query) {
             try {
-                const response = await fetch(`/api/users/search?query=${encodeURIComponent(query)}&token=${token}`, {
+                const response = await fetch(`/api/users/search?query=${encodeURIComponent(query)}`, {
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
                     }
                 });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_name');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('Failed to search users');
+                }
 
                 const data = await response.json();
 
@@ -478,12 +501,12 @@
                 const response = await fetch(`/api/groups/${groupId}/members`, {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        token,
                         user_id: selectedUserId,
                         role: document.getElementById('memberRole').value
                     })
@@ -512,7 +535,10 @@
             }
 
             try {
-                const response = await fetch(`/api/groups/${groupId}/members/${userId}?token=${token}`, {
+                const response = await fetch(`/api/groups/${groupId}/members/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -542,12 +568,12 @@
                 const response = await fetch(`/api/groups/${groupId}`, {
                     method: 'PUT',
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        token,
                         name: document.getElementById('editGroupName').value,
                         description: document.getElementById('editGroupDescription').value || null
                     })

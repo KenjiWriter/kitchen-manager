@@ -214,8 +214,9 @@
 
     <!-- Search EAN Modal -->
     <div id="searchEanModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-lg max-w-2xl w-full text-gray-900 max-h-screen overflow-y-auto">
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-40 backdrop-blur-md flex items-center justify-center p-4 z-50"
+        style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+        <div class="bg-white rounded-lg max-w-2xl w-full text-gray-900 max-h-screen overflow-y-auto shadow-2xl">
             <div class="p-6">
                 <div class="flex items-start justify-between mb-4">
                     <h3 class="text-xl font-bold">🔍 Szukaj produktu po kodzie EAN</h3>
@@ -228,20 +229,26 @@
                 </div>
 
                 <form id="searchEanForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Kod EAN *</label>
-                        <input type="text" id="eanCodeInput" placeholder="np. 5900008001634"
-                            pattern="[0-9]{8,13}" required
-                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Zdjęcie kodu kreskowego (opcjonalne)
+                    <!-- Main: Image Upload Section -->
+                    <div id="imageUploadSection">
+                        <label class="block text-sm font-medium text-gray-700 mb-3 text-center">
+                            📸 Zrób zdjęcie kodu kreskowego
                         </label>
-                        <input type="file" id="eanImageInput" accept="image/*" capture="environment"
-                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                        <p class="mt-1 text-xs text-gray-500">Możesz zrobić zdjęcie lub wybrać z galerii</p>
+                        <div class="flex justify-center">
+                            <label for="eanImageInput"
+                                class="cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all active:scale-95 font-medium text-lg flex items-center space-x-3 shadow-lg">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span>Prześlij zdjęcie</span>
+                            </label>
+                            <input type="file" id="eanImageInput" accept="image/*" capture="environment"
+                                class="hidden">
+                        </div>
+                        <p class="mt-3 text-sm text-gray-500 text-center">lub wybierz zdjęcie z galerii</p>
                     </div>
 
                     <!-- Image Preview -->
@@ -250,7 +257,20 @@
                             alt="Preview">
                     </div>
 
-                    <div class="flex space-x-3">
+                    <!-- Scan Status Message -->
+                    <div id="scanStatusMessage" class="hidden"></div>
+
+                    <!-- Manual Input Section (hidden by default) -->
+                    <div id="manualInputSection" class="hidden">
+                        <div class="border-t border-gray-200 pt-4 mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Kod EAN</label>
+                            <input type="text" id="eanCodeInput" placeholder="np. 5900008001634"
+                                pattern="[0-9]{8,13}" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div id="searchButtonContainer" class="hidden flex space-x-3">
                         <button type="submit"
                             class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium">
                             Szukaj
@@ -372,8 +392,8 @@
                         ${item.product.image_url 
                             ? `<img src="${item.product.image_url}" class="w-16 h-16 rounded-lg object-cover" alt="${item.product.name}">`
                             : `<div class="w-16 h-16 rounded-lg ${statusColor} border-2 flex items-center justify-center text-3xl">
-                                                ${item.product.category.icon}
-                                               </div>`
+                                                    ${item.product.category.icon}
+                                                   </div>`
                         }
                     </div>
                     <div class="flex-1 min-w-0">
@@ -408,31 +428,31 @@
                                 <span class="font-semibold ml-1">${item.quantity}</span>
                             </div>
                             ${item.location ? `
-                                            <div>
-                                                <span class="text-gray-600">Lokalizacja:</span>
-                                                <span class="font-semibold ml-1">${item.location}</span>
-                                            </div>
-                                            ` : ''}
+                                                <div>
+                                                    <span class="text-gray-600">Lokalizacja:</span>
+                                                    <span class="font-semibold ml-1">${item.location}</span>
+                                                </div>
+                                                ` : ''}
                             ${item.expiry_date ? `
-                                            <div class="col-span-2">
-                                                <span class="text-gray-600">Termin ważności:</span>
-                                                <span class="font-semibold ml-1 ${item.is_expired ? 'text-red-600' : item.is_expiring_soon ? 'text-orange-600' : 'text-green-600'}">
-                                                    ${new Date(item.expiry_date).toLocaleDateString('pl-PL')}
-                                                    ${item.days_until_expiry !== null ? `(${item.days_until_expiry} dni)` : ''}
-                                                </span>
-                                            </div>
-                                            ` : ''}
+                                                <div class="col-span-2">
+                                                    <span class="text-gray-600">Termin ważności:</span>
+                                                    <span class="font-semibold ml-1 ${item.is_expired ? 'text-red-600' : item.is_expiring_soon ? 'text-orange-600' : 'text-green-600'}">
+                                                        ${new Date(item.expiry_date).toLocaleDateString('pl-PL')}
+                                                        ${item.days_until_expiry !== null ? `(${item.days_until_expiry} dni)` : ''}
+                                                    </span>
+                                                </div>
+                                                ` : ''}
                             ${item.group ? `
-                                            <div class="col-span-2">
-                                                <span class="text-gray-600">Grupa:</span>
-                                                <span class="font-semibold ml-1">${item.group.name}</span>
-                                            </div>
-                                            ` : ''}
+                                                <div class="col-span-2">
+                                                    <span class="text-gray-600">Grupa:</span>
+                                                    <span class="font-semibold ml-1">${item.group.name}</span>
+                                                </div>
+                                                ` : ''}
                             ${item.notes ? `
-                                            <div class="col-span-2">
-                                                <p class="text-gray-600 text-xs italic">${item.notes}</p>
-                                            </div>
-                                            ` : ''}
+                                                <div class="col-span-2">
+                                                    <p class="text-gray-600 text-xs italic">${item.notes}</p>
+                                                </div>
+                                                ` : ''}
                         </div>
                     </div>
                 `;
@@ -609,19 +629,33 @@
 
         openSearchBtn.addEventListener('click', () => {
             searchModal.classList.remove('hidden');
+            resetSearchModal();
         });
 
         closeSearchBtn.addEventListener('click', () => {
             searchModal.classList.add('hidden');
-            searchEanForm.reset();
-            imagePreview.classList.add('hidden');
+            resetSearchModal();
         });
 
         cancelSearchBtn.addEventListener('click', () => {
             searchModal.classList.add('hidden');
+            resetSearchModal();
+        });
+
+        // Reset modal to initial state
+        function resetSearchModal() {
             searchEanForm.reset();
             imagePreview.classList.add('hidden');
-        });
+            document.getElementById('imageUploadSection').classList.remove('hidden');
+            document.getElementById('manualInputSection').classList.add('hidden');
+            document.getElementById('scanStatusMessage').classList.add('hidden');
+            document.getElementById('searchButtonContainer').classList.add('hidden');
+            document.getElementById('productHistory').classList.add('hidden');
+
+            // Clear any scan status
+            const scanStatus = document.getElementById('scanStatus');
+            if (scanStatus) scanStatus.remove();
+        }
 
         // Image preview and automatic EAN scanning
         eanImageInput.addEventListener('change', async (e) => {
@@ -633,33 +667,79 @@
                     imagePreview.classList.remove('hidden');
 
                     // Show scanning status
-                    const scanStatus = document.createElement('div');
-                    scanStatus.id = 'scanStatus';
-                    scanStatus.className = 'mt-2 text-center text-sm text-blue-600';
-                    scanStatus.textContent = 'Analizuję kod kreskowy...';
-                    imagePreview.appendChild(scanStatus);
+                    const statusDiv = document.getElementById('scanStatusMessage');
+                    statusDiv.classList.remove('hidden');
+                    statusDiv.innerHTML = `
+                        <div class="text-center py-4">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                            <p class="text-blue-600 font-medium">Analizuję kod kreskowy...</p>
+                        </div>
+                    `;
 
                     // Scan the image with Quagga2
                     try {
                         const eanCode = await scanImageForEAN(e.target.result);
                         if (eanCode) {
+                            // Success - auto-fill and show search button
                             document.getElementById('eanCodeInput').value = eanCode;
-                            scanStatus.textContent = `✓ Znaleziono kod: ${eanCode}`;
-                            scanStatus.className =
-                                'mt-2 text-center text-sm text-green-600 font-medium';
+                            document.getElementById('manualInputSection').classList.remove('hidden');
+                            document.getElementById('searchButtonContainer').classList.remove('hidden');
+                            document.getElementById('imageUploadSection').classList.add('hidden');
+
+                            statusDiv.innerHTML = `
+                                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <p class="text-green-700 font-medium text-center">
+                                        ✓ Znaleziono kod: <span class="font-mono text-lg">${eanCode}</span>
+                                    </p>
+                                </div>
+                            `;
                         } else {
-                            scanStatus.textContent = '⚠ Nie znaleziono kodu - wpisz ręcznie';
-                            scanStatus.className = 'mt-2 text-center text-sm text-orange-600';
+                            // Failure - show manual input
+                            showManualInputFallback();
                         }
                     } catch (error) {
                         console.error('Error scanning image:', error);
-                        scanStatus.textContent = '⚠ Nie udało się zeskanować - wpisz kod ręcznie';
-                        scanStatus.className = 'mt-2 text-center text-sm text-red-600';
+                        showManualInputFallback();
                     }
                 };
                 reader.readAsDataURL(file);
             }
         });
+
+        // Show manual input when scanning fails
+        function showManualInputFallback() {
+            const statusDiv = document.getElementById('scanStatusMessage');
+            statusDiv.innerHTML = `
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <p class="text-orange-700 font-medium text-center mb-2">
+                        ⚠ Nie znaleziono kodu EAN
+                    </p>
+                    <p class="text-sm text-orange-600 text-center">
+                        Spróbuj ponownie z lepszym zdjęciem lub wprowadź kod ręcznie
+                    </p>
+                    <div class="flex justify-center space-x-3 mt-3">
+                        <label for="eanImageInput"
+                            class="cursor-pointer bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 font-medium text-sm">
+                            📸 Spróbuj ponownie
+                        </label>
+                        <button type="button" onclick="showManualInput()"
+                            class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 font-medium text-sm">
+                            ✏️ Wpisz ręcznie
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show manual input form
+        window.showManualInput = function() {
+            document.getElementById('imageUploadSection').classList.add('hidden');
+            document.getElementById('scanStatusMessage').classList.add('hidden');
+            document.getElementById('manualInputSection').classList.remove('hidden');
+            document.getElementById('searchButtonContainer').classList.remove('hidden');
+            document.getElementById('eanCodeInput').focus();
+        };
+
 
         // Preprocess image for better barcode detection
         function preprocessImage(src) {
