@@ -560,6 +560,9 @@ document.getElementById('finalConfirmBtn').addEventListener('click', async () =>
     let added = 0;
     let failed = 0;
 
+    // Get auth token
+    const token = localStorage.getItem('auth_token');
+
     for (const item of scannedProducts) {
         const data = {
             product_id: item.product.id,
@@ -580,6 +583,25 @@ document.getElementById('finalConfirmBtn').addEventListener('click', async () =>
 
             if (response.ok) {
                 added++;
+
+                // Record scan history
+                try {
+                    await fetch('/api/scan-history/record', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            product_id: item.product.id,
+                            ean_code: item.product.ean_code,
+                            location: 'scanner'
+                        })
+                    });
+                } catch (historyError) {
+                    console.error('Failed to record scan history:', historyError);
+                }
             } else {
                 failed++;
             }
