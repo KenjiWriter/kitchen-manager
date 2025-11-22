@@ -5,6 +5,8 @@ use App\Http\Controllers\PantryItemController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductScanHistoryController;
+use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserGroupController;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +54,14 @@ Route::middleware(['auth.passwordless'])->group(function () {
     Route::get('/inventory', function () {
         return view('inventory');
     })->name('inventory');
+
+    Route::get('/recipes', function () {
+        return view('recipes');
+    })->name('recipes');
+
+    Route::get('/shopping-lists', function () {
+        return view('shopping-lists');
+    })->name('shopping-lists');
 
     // User Groups API
     Route::prefix('api/groups')->group(function () {
@@ -101,5 +111,30 @@ Route::middleware(['auth.passwordless'])->group(function () {
     Route::prefix('api/scan-history')->group(function () {
         Route::get('/by-ean', [ProductScanHistoryController::class, 'getByEan'])->name('api.scan-history.by-ean');
         Route::post('/record', [ProductScanHistoryController::class, 'recordScan'])->name('api.scan-history.record');
+    });
+
+    // Recipes API
+    Route::prefix('api/recipes')->group(function () {
+        Route::get('/', [RecipeController::class, 'index'])->name('api.recipes.index');
+        Route::get('/search-mealdb', [RecipeController::class, 'searchMealDB'])->name('api.recipes.searchMealDB');
+        Route::get('/mealdb-categories', [RecipeController::class, 'getMealDBCategories'])->name('api.recipes.mealdbCategories');
+        Route::post('/import-mealdb', [RecipeController::class, 'importFromMealDB'])->name('api.recipes.importMealDB');
+        Route::get('/{id}', [RecipeController::class, 'show'])->name('api.recipes.show');
+        Route::put('/{id}', [RecipeController::class, 'update'])->name('api.recipes.update');
+        Route::delete('/{id}', [RecipeController::class, 'destroy'])->name('api.recipes.destroy');
+        Route::post('/{id}/favorite', [RecipeController::class, 'toggleFavorite'])->name('api.recipes.toggleFavorite');
+        Route::put('/{recipeId}/ingredients/{ingredientId}', [RecipeController::class, 'updateIngredientMapping'])->name('api.recipes.updateIngredientMapping');
+        Route::delete('/{recipeId}/ingredients/{ingredientId}', [RecipeController::class, 'deleteIngredient'])->name('api.recipes.deleteIngredient');
+    });
+
+    // Shopping Lists API
+    Route::prefix('api/shopping-lists')->group(function () {
+        Route::get('/', [ShoppingListController::class, 'index'])->name('api.shoppingLists.index');
+        Route::post('/', [ShoppingListController::class, 'store'])->name('api.shoppingLists.store');
+        Route::post('/from-recipe', [ShoppingListController::class, 'createFromRecipe'])->name('api.shoppingLists.fromRecipe');
+        Route::post('/{listId}/items', [ShoppingListController::class, 'addItem'])->name('api.shoppingLists.addItem');
+        Route::post('/{listId}/items/{itemId}/toggle', [ShoppingListController::class, 'toggleItem'])->name('api.shoppingLists.toggleItem');
+        Route::delete('/{listId}/items/{itemId}', [ShoppingListController::class, 'deleteItem'])->name('api.shoppingLists.deleteItem');
+        Route::delete('/{id}', [ShoppingListController::class, 'destroy'])->name('api.shoppingLists.destroy');
     });
 });

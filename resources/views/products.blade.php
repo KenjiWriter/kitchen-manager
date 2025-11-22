@@ -201,8 +201,9 @@
 
         async function loadCategories() {
             try {
-                const response = await fetch('/api/categories?token=' + token, {
+                const response = await fetch('/api/categories', {
                     headers: {
+                        'X-Auth-Token': token,
                         'Accept': 'application/json'
                     }
                 });
@@ -226,7 +227,7 @@
 
                 const response = await fetch('/api/products', {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'X-Auth-Token': token,
                         'Accept': 'application/json'
                     }
                 });
@@ -419,7 +420,7 @@
                 const response = await fetch(`/api/products/${productId}`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'X-Auth-Token': token,
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: formData

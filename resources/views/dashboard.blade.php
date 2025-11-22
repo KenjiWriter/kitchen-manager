@@ -76,6 +76,16 @@
                     <span class="text-2xl">👥</span>
                 </div>
             </a>
+            <a href="{{ route('recipes') }}"
+                class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow p-3 hover:from-purple-600 hover:to-purple-700 transition-all active:scale-95">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-purple-100">Odkrywaj</p>
+                        <p class="text-xl font-bold text-white">Przepisy</p>
+                    </div>
+                    <span class="text-2xl">📖</span>
+                </div>
+            </a>
         </div>
 
         <!-- Recent Items -->
@@ -242,8 +252,8 @@
                                     ${item.product.image_url 
                                         ? `<img src="${item.product.image_url}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" alt="${item.product.name}">`
                                         : `<div class="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-xl flex-shrink-0">
-                                                        ${item.product.category.icon}
-                                                       </div>`
+                                                            ${item.product.category.icon}
+                                                           </div>`
                                     }
                                     <div class="flex-1 min-w-0">
                                         <h3 class="font-medium text-gray-900 truncate">${item.product.name}</h3>
